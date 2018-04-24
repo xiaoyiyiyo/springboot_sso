@@ -7,7 +7,7 @@ import javax.persistence.*;
  */
 @Table
 @Entity
-public class User {
+public class UserDo {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;						// 自增长主键
@@ -23,7 +23,7 @@ public class User {
     private String signUpDate;			// 用户注册时间
     private String lastLoginDate;			// 用户最后一次登录时间
 
-    public User() {
+    public UserDo() {
     }
 
     public Long getId() {
@@ -116,7 +116,7 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" +
+        return "UserDo{" +
                 "id=" + id +
                 ", account='" + account + '\'' +
                 ", userName='" + userName + '\'' +
