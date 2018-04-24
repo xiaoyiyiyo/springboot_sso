@@ -10,7 +10,8 @@
 		<module>sso_client_1</module>
 		<module>sso_client_2</module>
 		<module>sso_server</module>
-	</modules>
+        <module>common</module>
+    </modules>
 	<packaging>pom</packaging>
 
 	<name>springboot_sso</name>
