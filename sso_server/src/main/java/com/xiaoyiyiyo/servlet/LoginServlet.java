@@ -32,7 +32,7 @@ public class LoginServlet extends HttpServlet{
             // 如果serviceUrl为空，则跳转到登录页面，如果不为空，跳转到系统地址
             res.sendRedirect(StringUtils.isEmpty(serviceUrl) ? "/index.html" : serviceUrl);
         } else {
-            res.sendRedirect("/index.html?serviceUrl=" + serviceUrl);
+            res.sendRedirect("/index.html?service_url=" + serviceUrl);
         }
     }
 }
