@@ -10,8 +10,8 @@ import redis.clients.jedis.JedisPoolConfig;
 /**
  * Created by xiaoyiyiyo on 2018/4/26.
  */
-@Configuration
-@PropertySource(value="classpath:/redis.properties")
+//@Configuration
+//@PropertySource(value="classpath:/redis.properties")
 public class RedisConfiguration {
 
     @Value("${spring.redis.host}")
