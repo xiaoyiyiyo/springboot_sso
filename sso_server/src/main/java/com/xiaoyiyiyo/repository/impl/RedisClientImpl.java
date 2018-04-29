@@ -9,7 +9,7 @@ import redis.clients.jedis.JedisPool;
 /**
  * Created by xiaoyiyiyo on 2018/4/27.
  */
-@Component
+//@Component
 public class RedisClientImpl implements IRedisClient {
 
     @Autowired

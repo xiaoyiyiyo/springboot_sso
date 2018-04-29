@@ -14,3 +14,18 @@ spring:
         max-wait: -1ms
         max-idle: 8
         min-idle: 0
+  #jpa 配置
+  jpa:
+    hibernate:
+      #命名策略(遇到大写字母，加"_"命名)
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+      ddl-auto: update
+    show-sql: true
+    database: mysql
+  datasource:
+    url: jdbc:mysql://localhost:3306/sso?useUnicode=true&characterEncoding=UTF8
+    username: root
+    password: cui222723yi
+    driver-class-name: com.mysql.jdbc.Driver
+
