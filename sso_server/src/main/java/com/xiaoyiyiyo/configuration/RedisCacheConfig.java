@@ -13,10 +13,13 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
+import java.util.UUID;
 
 /**
  * Created by xiaoyiyiyo on 2018/4/28.
@@ -24,22 +27,6 @@ import java.time.Duration;
 @EnableCaching
 @Configuration
 public class RedisCacheConfig extends CachingConfigurerSupport{
-
-    /*@Bean
-    public RedisTemplate redisTemplate() {
-
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        //全局开关，支持jackson在反序列是使用多态
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(om);
-
-        StringRedisTemplate redisTemplate = new StringRedisTemplate();
-        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
-        return redisTemplate;
-
-    }*/
 
    /* @Bean
     public CacheManager cacheManager(RedisTemplate redisTemplate) {
@@ -70,11 +57,29 @@ public class RedisCacheConfig extends CachingConfigurerSupport{
     }
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate redisTemplate(RedisConnectionFactory redisConnectionFactory,
+                                       Jackson2JsonRedisSerializer jackson2JsonRedisSerializer) {
+
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        //全局开关，支持jackson在反序列是使用多态
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+
+        StringRedisTemplate redisTemplate = new StringRedisTemplate();
+        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        return redisTemplate;
+
+    }
+
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory,
+                                     Jackson2JsonRedisSerializer jackson2JsonRedisSerializer) {
 
         RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory);
         RedisSerializationContext.SerializationPair<Object> pair =
-               RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer());
+               RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer);
 
         RedisCacheConfiguration redisCacheConfiguration =
                RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(pair);

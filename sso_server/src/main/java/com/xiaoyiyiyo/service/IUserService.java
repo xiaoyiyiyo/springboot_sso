@@ -7,9 +7,5 @@ import com.xiaoyiyiyo.pojo.UserDo;
  */
 public interface IUserService {
 
-    UserDo userLogin(String userName, String password);
-
-    void logout(String token);
-
-    UserDo getUserByToken(String token);
+    UserDo getUser(String userName, String password);
 }

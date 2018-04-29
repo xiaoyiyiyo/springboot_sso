@@ -4,8 +4,13 @@ import com.xiaoyiyiyo.pojo.UserDo;
 import com.xiaoyiyiyo.repository.IRedisClient;
 import com.xiaoyiyiyo.repository.IUserRepository;
 import com.xiaoyiyiyo.service.IUserService;
+import org.hibernate.Session;
+import org.hibernate.jpa.HibernateEntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.UUID;
 
 /**
@@ -13,34 +18,28 @@ import java.util.UUID;
  */
 public class UserServiceImpl implements IUserService {
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Autowired
     private IUserRepository userRepository;
 
-    private IRedisClient redisClient;
 
+    /**
+     * 此处缓存key包含password,可能需要加密  TODO
+     */
+    @Cacheable
     @Override
-    public UserDo userLogin(String userName, String password) {
+    public UserDo getUser(String userName, String password) {
 
         //查询User
         UserDo user = userRepository.findByAccount(userName);
+        Session session = (Session)entityManager.getDelegate();
+        session.evict(user);
 
-        String token = UUID.randomUUID().toString();
-        //清理密码，之后恢复
-        String pw = user.getPassword();
-        String salt = user.getSalt();
         user.setPassword(null);
         user.setSalt(null);
-        //存入缓存
-        return null;
-    }
 
-    @Override
-    public void logout(String token) {
-
-    }
-
-    @Override
-    public UserDo getUserByToken(String token) {
-        return null;
+        return user;
     }
 }
