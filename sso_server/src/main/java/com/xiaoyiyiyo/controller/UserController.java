@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -26,7 +27,11 @@ public class UserController {
     private RedisTemplate redisTemplate;
 
     @PostMapping("/login")
-    public String login(HttpServletRequest request, String userName, String password) throws IOException {
+    public String login(HttpServletRequest request, @RequestBody Map<String, String> map) throws IOException {
+
+        String userName = map.get("userName");
+        String password = map.get("password");
+        String clientUrl = map.get("clientUrl");
 
         UserDo user = userService.getUser(userName, password);
 
@@ -39,26 +44,27 @@ public class UserController {
         String token = UUID.randomUUID().toString();
         session.setAttribute(AuthConst.IS_LOGIN, true);
         session.setAttribute(AuthConst.TOKEN, token);
-        redisTemplate.opsForValue().set(AuthConst.CACHE_SESSION + token, session);
 
-        String clientUrl = request.getParameter(AuthConst.CLIENT_URL);
         if (!StringUtils.isEmpty(clientUrl)) {
             redisTemplate.opsForValue().set(AuthConst.CACHE_CLIENT_URL + token, clientUrl);
-            return "redirect: " + clientUrl + "?" + AuthConst.TOKEN + "=" + token;
+            if (clientUrl.contains("?")) {
+                clientUrl = clientUrl + "&";
+            } else {
+                clientUrl = clientUrl + "?";
+            }
+            return "redirect: " + clientUrl + AuthConst.TOKEN + "=" + token;
         }
         return "redirect:/";
     }
 
-//    @GetMapping("/logout/{token}")
-//    public ResultDto logout(@PathVariable String token) {
-//
-//        userService.logout(token);
-//        return RespUtils.success(null, System.currentTimeMillis());
-//    }
-//
-//    @GetMapping("/token/{token}")
-//    public ResultDto getUserByToken(@PathVariable String token) {
-//
-//        return RespUtils.success(userService.getUserByToken(token), System.currentTimeMillis());
-//    }
+    @GetMapping("/logout")
+    public void logout(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String token = request.getParameter(AuthConst.TOKEN);
+
+        if (!StringUtils.isEmpty(token)) {
+
+        }
+    }
+
 }

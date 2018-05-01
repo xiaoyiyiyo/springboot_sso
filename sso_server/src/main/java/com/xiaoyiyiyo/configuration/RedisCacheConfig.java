@@ -3,9 +3,14 @@ package com.xiaoyiyiyo.configuration;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +20,7 @@ import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.*;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -28,6 +32,7 @@ import java.util.UUID;
 @Configuration
 public class RedisCacheConfig extends CachingConfigurerSupport{
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
    /* @Bean
     public CacheManager cacheManager(RedisTemplate redisTemplate) {
         RedisCacheManager manager = new RedisCacheManager(redisTemplate);
@@ -42,52 +47,66 @@ public class RedisCacheConfig extends CachingConfigurerSupport{
         manager.setExpires(expiresMap);
         return manager;
     }*/
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        om.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        return om;
+    }
 
     @Bean
-    public Jackson2JsonRedisSerializer jackson2JsonRedisSerializer () {
+    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer (ObjectMapper om) {
 
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        //全局开关，支持jackson在反序列是使用多态
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(om);
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(om);
 
-        return jackson2JsonRedisSerializer;
+        return serializer;
     }
 
     @Bean
     public RedisTemplate redisTemplate(RedisConnectionFactory redisConnectionFactory,
-                                       Jackson2JsonRedisSerializer jackson2JsonRedisSerializer) {
+                                       GenericJackson2JsonRedisSerializer serializer) {
 
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        //全局开关，支持jackson在反序列是使用多态
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(om);
-
-        StringRedisTemplate redisTemplate = new StringRedisTemplate();
-        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
+        RedisSerializer stringSerializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(stringSerializer);//key序列化
+        redisTemplate.setValueSerializer(serializer);//value序列化
+        redisTemplate.setHashKeySerializer(stringSerializer);//Hash key序列化
+        redisTemplate.setHashValueSerializer(serializer);//Hash value序列化
+        redisTemplate.afterPropertiesSet();
         return redisTemplate;
 
     }
 
+//    @Bean
+//    public CacheManager cacheManager(RedisConnectionFactory connectionFactory,
+//                                     GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer) {
+//
+//        RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory);
+//
+//        RedisCacheConfiguration redisCacheConfiguration =
+//               RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(
+//                       RedisSerializationContext.SerializationPair.fromSerializer(genericJackson2JsonRedisSerializer));
+//
+//        //设置默认超过期时间是30秒
+//        redisCacheConfiguration.entryTtl(Duration.ofSeconds(30));
+//        //初始化RedisCacheManager
+//        RedisCacheManager cacheManager = new RedisCacheManager(redisCacheWriter, redisCacheConfiguration);
+//        return cacheManager;
+//    }
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory,
-                                     Jackson2JsonRedisSerializer jackson2JsonRedisSerializer) {
-
-        RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory);
-        RedisSerializationContext.SerializationPair<Object> pair =
-               RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer);
-
-        RedisCacheConfiguration redisCacheConfiguration =
-               RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(pair);
-        //设置默认超过期时间是30秒
-        redisCacheConfiguration.entryTtl(Duration.ofSeconds(30));
-        //初始化RedisCacheManager
-        RedisCacheManager cacheManager = new RedisCacheManager(redisCacheWriter, redisCacheConfiguration);
-        return cacheManager;
+    public RedisCacheConfiguration redisCacheConfiguration(GenericJackson2JsonRedisSerializer serializer) {
+        return RedisCacheConfiguration
+                .defaultCacheConfig()
+                .serializeKeysWith(
+                        RedisSerializationContext
+                                .SerializationPair
+                                .fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(
+                        RedisSerializationContext
+                                .SerializationPair
+                                .fromSerializer(serializer));
     }
 
     @Bean
@@ -102,5 +121,31 @@ public class RedisCacheConfig extends CachingConfigurerSupport{
             }
             return sb.toString();
         };
+    }
+
+    @Override
+    public CacheErrorHandler errorHandler() {
+        CacheErrorHandler cacheErrorHandler = new CacheErrorHandler() {
+            @Override
+            public void handleCacheGetError(RuntimeException e, Cache cache, Object key) {
+                logger.error("redis异常：key=[{}]",key,e);
+            }
+
+            @Override
+            public void handleCachePutError(RuntimeException e, Cache cache, Object key, Object value) {
+                logger.error("redis异常：key=[{}]",key,e);
+            }
+
+            @Override
+            public void handleCacheEvictError(RuntimeException e, Cache cache, Object key)    {
+                logger.error("redis异常：key=[{}]",key,e);
+            }
+
+            @Override
+            public void handleCacheClearError(RuntimeException e, Cache cache) {
+                logger.error("redis异常：",e);
+            }
+        };
+        return cacheErrorHandler;
     }
 }

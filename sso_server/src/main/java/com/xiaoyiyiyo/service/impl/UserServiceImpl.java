@@ -30,12 +30,15 @@ public class UserServiceImpl implements IUserService {
     /**
      * 此处缓存key包含password,可能需要加密  TODO
      */
-    @Cacheable
+    @Cacheable(value = "user")
     @Override
     public UserDo getUser(String userName, String password) {
 
         //查询User
         UserDo user = userRepository.findByAccount(userName);
+        if (user == null) {
+            return null;
+        }
         Session session = (Session)entityManager.getDelegate();
         session.evict(user);
 
