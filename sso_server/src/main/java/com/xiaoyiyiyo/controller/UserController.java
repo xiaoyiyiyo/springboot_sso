@@ -3,6 +3,7 @@ package com.xiaoyiyiyo.controller;
 import com.xiaoyiyiyo.common.AuthConst;
 import com.xiaoyiyiyo.pojo.UserDo;
 import com.xiaoyiyiyo.service.IUserService;
+import com.xiaoyiyiyo.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -11,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by xiaoyiyiyo on 2018/4/24.
@@ -29,7 +29,7 @@ public class UserController {
     @PostMapping("/login")
     public String login(HttpServletRequest request, @RequestBody Map<String, String> map) throws IOException {
 
-        String userName = map.get("userName");
+        String userName = map.get("username");
         String password = map.get("password");
         String clientUrl = map.get("clientUrl");
 
@@ -46,7 +46,7 @@ public class UserController {
         session.setAttribute(AuthConst.TOKEN, token);
 
         if (!StringUtils.isEmpty(clientUrl)) {
-            redisTemplate.opsForValue().set(AuthConst.CACHE_CLIENT_URL + token, clientUrl);
+            redisTemplate.opsForSet().add(token, clientUrl);
             if (clientUrl.contains("?")) {
                 clientUrl = clientUrl + "&";
             } else {
@@ -58,13 +58,23 @@ public class UserController {
     }
 
     @GetMapping("/logout")
-    public void logout(HttpServletRequest request) {
+    public String logout(HttpServletRequest request) {
         HttpSession session = request.getSession();
         String token = request.getParameter(AuthConst.TOKEN);
 
-        if (!StringUtils.isEmpty(token)) {
-
+        if (StringUtils.isEmpty(token)) {
+            token = (String)session.getAttribute(AuthConst.TOKEN);
         }
+
+        Set<String> set = redisTemplate.opsForSet().members(token);
+        if (null != set && set.size() > 0) {
+            Map<String, String> paramMap = new HashMap<String, String>();
+            paramMap.put(AuthConst.TOKEN, token);
+            for (String url: set) {
+                HttpUtils.doPost(url, paramMap);
+            }
+        }
+        return "redirect:/";
     }
 
 }

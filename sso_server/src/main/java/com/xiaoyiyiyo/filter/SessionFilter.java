@@ -3,6 +3,7 @@ package com.xiaoyiyiyo.filter;
 import com.xiaoyiyiyo.common.AuthConst;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -45,7 +46,7 @@ public class SessionFilter implements Filter{
             String clientUrl = request.getParameter(AuthConst.CLIENT_URL);
             String token = (String) session.getAttribute(AuthConst.TOKEN);
             if (clientUrl != null && !"".equals(clientUrl)) {
-                redisTemplate.opsForValue().set(token, clientUrl);
+                redisTemplate.opsForSet().add(token, clientUrl);
                 if (clientUrl.contains("?")) {
                     clientUrl = clientUrl + "&";
                 } else {
@@ -60,6 +61,11 @@ public class SessionFilter implements Filter{
             }
             filterChain.doFilter(servletRequest, servletResponse);
             return;
+        }
+
+        String token = request.getParameter(AuthConst.TOKEN);
+        if (!StringUtils.isEmpty(token) && !StringUtils.isEmpty(redisTemplate.opsForValue().get(token))) {
+
         }
 
         //登录请求，放行
