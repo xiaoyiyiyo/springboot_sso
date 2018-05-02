@@ -1,6 +1,8 @@
 package com.xiaoyiyiyo.server.filter;
 
 import com.xiaoyiyiyo.server.common.constant.AuthConst;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -14,6 +16,10 @@ import java.io.IOException;
  */
 @WebFilter(filterName = "loginFilter", urlPatterns = "/*")
 public class LoginFilter implements Filter{
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -34,8 +40,11 @@ public class LoginFilter implements Filter{
         if (token != null) {
             session.setAttribute(AuthConst.TOKEN, token);
             session.setAttribute(AuthConst.IS_LOGIN, true);
+            redisTemplate.opsForValue().set(token, session.getId());
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
         }
-        response.sendRedirect("");
+        response.sendRedirect("http://localhost:8888/sso/server/login" + "?" + AuthConst.CLIENT_URL + "=" + request.getRequestURL());
     }
 
     @Override
