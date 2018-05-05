@@ -31,11 +31,14 @@ public class LoginFilter implements Filter{
         HttpServletResponse response = (HttpServletResponse)servletResponse;
         HttpSession session = request.getSession();
 
+        //当前浏览器与系统之间的session是否已登录
         if ((Boolean) session.getAttribute(AuthConst.IS_LOGIN)) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
 
+        //没有登录的时候request中没有token，需将用户请求重定向到认证中心，然后认证中心生成token中重定向到系统
+        //当前系统拿到token
         String token = request.getParameter(AuthConst.TOKEN);
         if (token != null) {
             session.setAttribute(AuthConst.TOKEN, token);
@@ -44,6 +47,8 @@ public class LoginFilter implements Filter{
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
+
+        //没有登录将用户请求重定向到认证中心
         response.sendRedirect("http://localhost:8888/sso/server/login" + "?" + AuthConst.CLIENT_URL + "=" + request.getRequestURL());
     }
 
