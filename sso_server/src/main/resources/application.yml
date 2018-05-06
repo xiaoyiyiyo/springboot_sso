@@ -1,13 +1,20 @@
+
+
 #2.x版本中由于引入了不同客户端，需要指定配置哪种连接池
 #jedis客户端
+
 spring:
+  session:
+    store-type: redis
+    redis:
+      namespace: sso_server
   cache:
     type: redis
   redis:
     host: 127.0.0.1
     port: 6379
     timeout: 5000
-    database: 0
+    database: 1
     jedis:
       pool:
         max-active: 8

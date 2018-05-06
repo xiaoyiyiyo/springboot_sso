@@ -1,4 +1,4 @@
-package com.xiaoyiyiyo.server.config;
+package com.xiaoyiyiyo.client.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

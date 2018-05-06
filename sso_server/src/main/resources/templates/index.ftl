@@ -3,6 +3,8 @@
 
     <body>
         <div>
+            session id : ${sessionId}
+            <br>
             <form id = "login" action = "/login" method="post">
                 user name : <input type = "text" name = "username", value =  "root" />
                 password  : <input type = "password" name = "password", value =  "root" />

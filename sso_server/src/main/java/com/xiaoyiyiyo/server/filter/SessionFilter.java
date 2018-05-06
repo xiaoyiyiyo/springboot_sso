@@ -3,7 +3,6 @@ package com.xiaoyiyiyo.server.filter;
 import com.xiaoyiyiyo.server.common.constant.AuthConst;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;

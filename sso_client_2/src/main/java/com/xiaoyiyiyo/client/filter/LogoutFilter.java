@@ -1,4 +1,4 @@
-package com.xiaoyiyiyo.server.filter;
+package com.xiaoyiyiyo.client.filter;
 
 import com.xiaoyiyiyo.server.common.constant.AuthConst;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class LogoutFilter implements Filter{
             String token = (String)session.getAttribute(AuthConst.TOKEN);
             //附带系统首页
             response.sendRedirect("http://localhost:8080/logout" + "?" + AuthConst.TOKEN + "=" + token
-                + "&" + AuthConst.CLIENT_URL + "=http://localhost:8081/index");
+                + "&" + AuthConst.CLIENT_URL + "=http://localhost:8082/index");
             return;
         }
 
