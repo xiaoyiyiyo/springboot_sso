@@ -48,6 +48,7 @@ public class RedisCacheConfig extends CachingConfigurerSupport{
         ObjectMapper om = new ObjectMapper();
         om.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         om.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
         return om;
     }
 

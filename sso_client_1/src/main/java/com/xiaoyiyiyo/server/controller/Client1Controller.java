@@ -8,19 +8,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Created by xiaoyiyiyo on 2018/5/1.
+ * Created by xiaoyiyiyo on 2018/5/6.
  */
 @Controller
-public class IndexController {
+public class Client1Controller {
 
-    @GetMapping("/sso")
+    @GetMapping("/index")
     public String index(HttpServletRequest request, ModelMap modelMap) {
-        modelMap.addAttribute("clientUrl", request.getParameter(AuthConst.CLIENT_URL));
+        modelMap.addAttribute("sessionId", request.getSession().getId());
         return "index";
     }
 
-    @GetMapping("/success")
-    public String success() {
-        return "success";
+    @GetMapping("/client")
+    public String client(HttpServletRequest request, ModelMap modelMap) {
+        modelMap.addAttribute("sessionId", request.getSession().getId());
+        return "client";
     }
 }

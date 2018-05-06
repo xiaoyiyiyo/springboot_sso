@@ -1,3 +1,4 @@
+
 #2.x版本中由于引入了不同客户端，需要指定配置哪种连接池
 #jedis客户端
 spring:
@@ -14,3 +15,5 @@ spring:
         max-wait: -1ms
         max-idle: 8
         min-idle: 0
+server:
+  port: 8081

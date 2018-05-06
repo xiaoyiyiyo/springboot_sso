@@ -14,4 +14,6 @@ public class AuthConst {
     public static final String CACHE_SESSION = "SESSION";
 
     public static final String CACHE_CLIENT_URL = "CLIENT_URL";
+
+    public static final String LOGOUT_REUQEST = "logout_request";
 }

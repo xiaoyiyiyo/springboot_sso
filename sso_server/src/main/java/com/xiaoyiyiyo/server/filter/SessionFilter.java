@@ -15,7 +15,7 @@ import java.io.IOException;
 /**
  * Created by xiaoyiyiyo on 2018/5/1.
  */
-@WebFilter(filterName = "sessionFilter", urlPatterns = "/*")
+@WebFilter(filterName = "sessionFilter", urlPatterns = {"/login", "/logout"})
 public class SessionFilter implements Filter{
 
     @Autowired
@@ -63,10 +63,10 @@ public class SessionFilter implements Filter{
             return;
         }
 
-        String token = request.getParameter(AuthConst.TOKEN);
-        if (!StringUtils.isEmpty(token) && !StringUtils.isEmpty(redisTemplate.opsForValue().get(token))) {
-
-        }
+//        String token = request.getParameter(AuthConst.TOKEN);
+//        if (!StringUtils.isEmpty(token) && !StringUtils.isEmpty(redisTemplate.opsForValue().get(token))) {
+//
+//        }
 
         //登录请求，放行
         if ("/".equals(uri) || "/login".equals(uri)) {
