@@ -53,7 +53,7 @@ public class LoginFilter implements Filter{
         }
 
         //没有登录将用户请求重定向到认证中心
-        response.sendRedirect("http://localhost:8080/sso" + "?" + AuthConst.CLIENT_URL + "=" + request.getRequestURL());
+        response.sendRedirect("http://localhost:8080/login" + "?" + AuthConst.CLIENT_URL + "=" + request.getRequestURL());
     }
 
     @Override

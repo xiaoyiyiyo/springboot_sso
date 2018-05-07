@@ -32,6 +32,7 @@ public class UserController {
     @GetMapping("/login")
     public String login(HttpServletRequest request, ModelMap modelMap) {
         modelMap.addAttribute("clientUrl", request.getParameter(AuthConst.CLIENT_URL));
+        modelMap.addAttribute("sessionId", request.getSession().getId());
         return "index";
     }
 

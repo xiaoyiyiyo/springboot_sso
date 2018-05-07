@@ -1,5 +1,7 @@
 server:
   port: 8082
+  session:
+    timeout: 1800
 
 #2.x版本中由于引入了不同客户端，需要指定配置哪种连接池
 #jedis客户端
@@ -13,11 +15,10 @@ spring:
   redis:
     host: 127.0.0.1
     port: 6379
-    timeout: 5000
+    timeout: 0
     database: 2
-    jedis:
-      pool:
-        max-active: 8
-        max-wait: -1ms
-        max-idle: 8
-        min-idle: 0
+    pool:
+      max-active: 8
+      max-wait: -1
+      max-idle: 8
+      min-idle: 0

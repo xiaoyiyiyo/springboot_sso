@@ -7,19 +7,22 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by xiaoyiyiyo on 2018/4/28.
@@ -76,35 +79,32 @@ public class RedisCacheConfig extends CachingConfigurerSupport{
 
     }
 
-//    @Bean
-//    public CacheManager cacheManager(RedisConnectionFactory connectionFactory,
-//                                     GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer) {
-//
-//        RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory);
-//
-//        RedisCacheConfiguration redisCacheConfiguration =
-//               RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(
-//                       RedisSerializationContext.SerializationPair.fromSerializer(genericJackson2JsonRedisSerializer));
-//
-//        //设置默认超过期时间是30秒
-//        redisCacheConfiguration.entryTtl(Duration.ofSeconds(30));
-//        //初始化RedisCacheManager
-//        RedisCacheManager cacheManager = new RedisCacheManager(redisCacheWriter, redisCacheConfiguration);
-//        return cacheManager;
-//    }
     @Bean
-    public RedisCacheConfiguration redisCacheConfiguration(GenericJackson2JsonRedisSerializer serializer) {
-        return RedisCacheConfiguration
-                .defaultCacheConfig()
-                .serializeKeysWith(
-                        RedisSerializationContext
-                                .SerializationPair
-                                .fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(
-                        RedisSerializationContext
-                                .SerializationPair
-                                .fromSerializer(serializer));
+    public CacheManager cacheManager(RedisTemplate redisTemplate ) {
+        RedisCacheManager manager = new RedisCacheManager(redisTemplate);
+        manager.setUsePrefix(true);
+
+        // 整体缓存过期时间
+        manager.setDefaultExpiration(3600L);
+        // 设置缓存过期时间。key和缓存过期时间，单位秒
+        Map<String, Long> expiresMap = new HashMap<>();
+        expiresMap.put("user", 1000L);
+        manager.setExpires(expiresMap);
+        return manager;
     }
+//    @Bean
+//    public RedisCacheConfiguration redisCacheConfiguration(GenericJackson2JsonRedisSerializer serializer) {
+//        return RedisCacheConfiguration
+//                .defaultCacheConfig()
+//                .serializeKeysWith(
+//                        RedisSerializationContext
+//                                .SerializationPair
+//                                .fromSerializer(new StringRedisSerializer()))
+//                .serializeValuesWith(
+//                        RedisSerializationContext
+//                                .SerializationPair
+//                                .fromSerializer(serializer));
+//    }
 
     @Bean
     @Override
