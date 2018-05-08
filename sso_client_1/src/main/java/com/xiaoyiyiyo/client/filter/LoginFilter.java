@@ -17,9 +17,6 @@ import java.io.IOException;
 @WebFilter(filterName = "loginFilter", urlPatterns = "/*")
 public class LoginFilter implements Filter{
 
-    @Autowired
-    private RedisTemplate redisTemplate;
-
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -35,15 +32,17 @@ public class LoginFilter implements Filter{
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
-        //当前浏览器与系统之间的session是否已登录
+
+        //第一次访问，用户没登录
+        //用户拿到token，再次访问，此时is_login依旧为false
         Object is_login = session.getAttribute(AuthConst.IS_LOGIN);
         if (is_login != null && (Boolean) session.getAttribute(AuthConst.IS_LOGIN)) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
 
-        //没有登录的时候request中没有token，需将用户请求重定向到认证中心，然后认证中心生成token中重定向到系统
-        //当前系统拿到token
+        //第一次访问，token为null
+        //用户拿到token，说明已通过验证，将session标记为已登录
         String token = request.getParameter(AuthConst.TOKEN);
         if (token != null) {
             session.setAttribute(AuthConst.TOKEN, token);

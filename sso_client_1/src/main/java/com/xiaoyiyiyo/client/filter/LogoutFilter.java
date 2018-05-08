@@ -18,9 +18,6 @@ import java.io.IOException;
 @WebFilter(filterName = "logoutFilter", urlPatterns = "/*")
 public class LogoutFilter implements Filter{
 
-    @Autowired
-    private RedisTemplate redisTemplate;
-
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -32,11 +29,7 @@ public class LogoutFilter implements Filter{
         HttpServletResponse response = (HttpServletResponse)servletResponse;
         HttpSession session = request.getSession();
 
-        if ("/index".equals(request.getRequestURI())) {
-            filterChain.doFilter(servletRequest, servletResponse);
-            return;
-        }
-
+        // 用户发出logout请求，重定向到认证中心处理
         if ("/logout".equals(request.getRequestURI())) {
             String token = (String)session.getAttribute(AuthConst.TOKEN);
             //附带系统首页
@@ -45,6 +38,7 @@ public class LogoutFilter implements Filter{
             return;
         }
 
+        // 得到来自认证中心发过来的注销通知
         String token = request.getParameter(AuthConst.LOGOUT_REUQEST);
         if (!StringUtils.isEmpty(token) && session != null) {
             session.invalidate();

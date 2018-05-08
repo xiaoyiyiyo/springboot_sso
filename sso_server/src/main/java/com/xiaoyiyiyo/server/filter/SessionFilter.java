@@ -54,10 +54,10 @@ public class SessionFilter implements Filter{
                 response.sendRedirect(clientUrl + AuthConst.TOKEN + "=" + token);
                 return;
             }
-            if ("/success".equals(uri)) {
-                response.sendRedirect("/success");
-                return;
-            }
+//            if ("/success".equals(uri)) {
+//                response.sendRedirect("/success");
+//                return;
+//            }
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
